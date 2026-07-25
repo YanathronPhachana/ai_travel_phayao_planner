@@ -59,10 +59,9 @@ jobs:
       - name: Build
         run: |
           echo "Vite exists: $(ls node_modules/.bin/vite 2>/dev/null || echo 'no')"
+          echo "Node bin: $(ls node_modules/.bin/ | head -5)"
           echo "--- vite build ---"
-          ./node_modules/.bin/vite build 2>&1 || true
-          echo "--- ls dist ---"
-          ls dist/ 2>/dev/null || echo "dist empty"
+          ./node_modules/.bin/vite build 2>&1
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
 
@@ -128,9 +127,11 @@ jobs:
         run: |
           cd frontend
           rm -f pnpm-lock.yaml
-          npm install --legacy-peer-deps 2>&1
-          npm run build 2>&1 || true
-          ls dist/ 2>/dev/null && cp -r dist ../dist || echo "❌ dist not created"
+          npm install --legacy-peer-deps --ignore-scripts 2>&1
+          ./node_modules/.bin/vite build 2>&1
+          echo "--- dist contents ---"
+          ls -la dist/ 2>/dev/null || echo "dist empty"
+          mkdir -p ../dist && cp -r dist/* ../dist/ 2>/dev/null || true
           cd ..
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
