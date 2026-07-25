@@ -16,22 +16,17 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/package-lock.json
-
       - name: Install dependencies
         run: npm ci
-
       - name: Typecheck
         run: npm run typecheck
-
       - name: Build Lambda bundle
         run: npm run build:lambda
-
       - name: Upload Lambda artifact
         uses: actions/upload-artifact@v4
         with:
@@ -39,48 +34,31 @@ jobs:
           path: backend/dist/lambda/
 
   build-frontend:
-    name: Frontend — Typecheck & Build
+    name: Frontend — Build
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-
-      - name: Build & Debug
+      - name: Install & Build
         run: |
-          rm -f pnpm-lock.yaml
+          rm -f pnpm-lock.yaml package-lock.json
           npm install --legacy-peer-deps --ignore-scripts 2>&1
-          echo "=== npm ls vite ==="
-          npm ls vite 2>&1 | head -15
-          echo "=== ls node_modules/.bin ==="
-          ls node_modules/.bin/ 2>&1 | head -15
-          echo "=== Build ==="
-          npm run build 2>&1 | tee /tmp/build-output.txt || true
+          # Generate icons (needed for build)
+          npm run build:icons 2>&1 || true
+          # Build
+          npm run build 2>&1
           echo "=== dist ==="
-          echo "=== dist ==="
-          ls -la dist/ 2>/dev/null || echo 'NO DIST'
-
+          ls -la dist/ 2>/dev/null || echo "NO_DIST"
       - name: Upload dist
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: frontend-dist
           path: frontend/dist/
-
-      - name: Upload build log
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: build-log
-          path: /tmp/build-output.txt
-        env:
-          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
 
   deploy-backend:
     name: Deploy Backend → Cloudflare Workers
@@ -92,28 +70,23 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/package-lock.json
-
       - name: Install dependencies
         run: npm ci
-
       - name: Inject Cloudflare resource IDs into wrangler.jsonc
         run: |
           cp wrangler.example.jsonc wrangler.jsonc
           sed -i "s/<REPLACE_WITH_D1_DATABASE_ID>/${{ secrets.D1_DATABASE_ID }}/g" wrangler.jsonc
           sed -i "s/<REPLACE_WITH_KV_NAMESPACE_ID>/${{ secrets.KV_NAMESPACE_ID }}/g" wrangler.jsonc
-
       - name: Apply D1 migrations
         run: ./node_modules/.bin/wrangler d1 migrations apply ai-travel-phayao-planner-db --remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Deploy
         id: deploy
         run: |
@@ -124,7 +97,6 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Show deployment URL
         run: echo "✅ Backend deployed to ${{ steps.deploy.outputs.deployment-url }}"
 
@@ -134,36 +106,18 @@ jobs:
     needs: [build-frontend, deploy-backend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Download built dist
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: dist
-
       - name: Verify dist
-        run: ls -la dist/ 2>/dev/null || echo 'No dist'
-
-      - name: Create Pages project if not exists
-        run: npx wrangler pages project create ${{ secrets.PAGES_PROJECT_NAME }} --production-branch=main 2>&1 || true
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
+        run: |
+          ls -la dist/
+          ls -la dist/index.html 2>/dev/null || echo "No index.html"
       - name: Deploy to Cloudflare Pages
         run: |
-          ls -la dist/ 2>/dev/null || echo "No dist dir"
-          ls -la dist/index.html 2>/dev/null || echo "No index.html"
-          set -o pipefail
-          npx wrangler pages deploy dist --project-name=${{ secrets.PAGES_PROJECT_NAME }} --branch=main 2>&1 || npx wrangler pages deploy dist --project-name=${{ secrets.PAGES_PROJECT_NAME }} --branch=main 2>&1 || true
+          ls dist/ 2>/dev/null
+          npx wrangler pages deploy dist --project-name=${{ secrets.PAGES_PROJECT_NAME }} --branch=main 2>&1
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-      - name: Show deployment URL
-        run: echo "✅ Frontend deployed to https://${{ secrets.PAGES_PROJECT_NAME }}.pages.dev"
