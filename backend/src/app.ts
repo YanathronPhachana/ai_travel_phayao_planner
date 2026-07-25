@@ -30,15 +30,18 @@ export function createApp(containerFactory: (env: Partial<Bindings>) => Containe
     openAPIRouteHandler(app, {
       documentation: {
         info: {
-          title: 'Starter API',
+          title: 'NgernNgern ThongThong API',
           version: '1.0.0',
-          description: 'Hono backend running on Cloudflare Workers (D1 + KV) and AWS Lambda',
+          description: 'Personal finance API — track income and expenses on Cloudflare Workers (D1 + KV)',
         },
-        tags: [{ name: 'Users', description: 'User management' }],
+        tags: [
+          { name: 'Users', description: 'User management' },
+          { name: 'Transactions', description: 'Income and expense tracking' },
+        ],
       },
     })
   )
-  app.get('/docs', Scalar({ url: '/openapi.json', pageTitle: 'Starter API Docs' }))
+  app.get('/docs', Scalar({ url: '/openapi.json', pageTitle: 'NgernNgern ThongThong API Docs' }))
 
   app.notFound((c) => c.json({ error: { code: 'NOT_FOUND', message: 'Route not found' } }, 404))
 
