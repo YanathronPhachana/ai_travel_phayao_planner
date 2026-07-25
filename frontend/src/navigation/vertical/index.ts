@@ -1,19 +1,24 @@
 export default [
   {
-    heading: 'หลัก',
+    heading: 'เมนูหลัก',
   },
   {
-    title: 'แดชบอร์ด',
+    title: 'หน้าแรก',
     to: { name: 'root' },
     icon: { icon: 'ri-home-line' },
   },
   {
-    heading: 'จัดการ',
+    heading: 'การเดินทาง',
   },
   {
-    title: 'รายรับ/รายจ่าย',
-    to: { name: 'transaction-page' },
-    icon: { icon: 'ri-wallet-3-line' },
+    title: 'จัดการทริป',
+    to: { name: 'trip-page' },
+    icon: { icon: 'ri-road-map-line' },
+  },
+  {
+    title: 'สถานที่เที่ยว',
+    to: { name: 'destination-page' },
+    icon: { icon: 'ri-map-pin-line' },
   },
   {
     heading: 'ระบบ',

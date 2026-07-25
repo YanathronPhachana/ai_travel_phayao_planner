@@ -1,26 +1,46 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useSEO } from '@/composables/useSEO'
-import { useTransactionStore } from '@/stores/use-transaction-store'
+import { useTripStore } from '@/stores/use-trip-store'
+import { useTripExpenseStore } from '@/stores/use-trip-expense-store'
+import { useAccommodationStore } from '@/stores/use-accommodation-store'
+import { usePackingItemStore } from '@/stores/use-packing-item-store'
 
 useSEO({
-  title: 'แดชบอร์ด - NgernNgern ThongThong',
-  description: 'ภาพรวมรายรับรายจ่ายส่วนตัว',
-  keywords: ['dashboard', 'finance', 'personal'],
+  title: 'แดชบอร์ด - AI Travel Phayao Planner',
+  description: 'ภาพรวมการวางแผนท่องเที่ยวพะเยา',
+  keywords: ['dashboard', 'travel', 'phayao', 'trips'],
 })
 
-const transactionStore = useTransactionStore()
+const tripStore = useTripStore()
+const expenseStore = useTripExpenseStore()
+const accommodationStore = useAccommodationStore()
+const packingStore = usePackingItemStore()
 
 onMounted(async () => {
-  await Promise.all([
-    transactionStore.fetchTransactions(),
-    transactionStore.fetchSummary(),
-  ])
+  await tripStore.fetchTrips()
+  if (tripStore.trips.length > 0) {
+    const latest = tripStore.trips[0]
+    await Promise.all([
+      expenseStore.fetchExpenses(latest.id),
+      expenseStore.fetchSummary(latest.id),
+      accommodationStore.fetchAccommodations(latest.id),
+      packingStore.fetchItems(latest.id),
+    ])
+  }
 })
 
 function formatAmount(amount: number) {
-  return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)
+  return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount)
 }
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('th-TH', { dateStyle: 'medium' })
+}
+
+const totalExpenses = computed(() => expenseStore.summary?.total ?? 0)
+const checkedItems = computed(() => packingStore.items.filter(i => i.isChecked).length)
+const totalItems = computed(() => packingStore.items.length)
 </script>
 
 <template>
@@ -31,13 +51,13 @@ function formatAmount(amount: number) {
       <VCol cols="12" sm="6" lg="3">
         <VCard>
           <VCardText class="d-flex align-center gap-3">
-            <VAvatar color="success" variant="tonal" size="48">
-              <VIcon icon="ri-arrow-up-line" size="24" />
+            <VAvatar color="primary" variant="tonal" size="48">
+              <VIcon icon="ri-map-line" size="24" />
             </VAvatar>
             <div>
-              <div class="text-caption text-medium-emphasis">รายรับทั้งหมด</div>
-              <div class="text-h5 font-weight-bold text-success">
-                ฿{{ transactionStore.summary ? formatAmount(transactionStore.summary.totalIncome) : '0.00' }}
+              <div class="text-caption text-medium-emphasis">จำนวนทริป</div>
+              <div class="text-h5 font-weight-bold text-primary">
+                {{ tripStore.trips.length }}
               </div>
             </div>
           </VCardText>
@@ -47,31 +67,12 @@ function formatAmount(amount: number) {
         <VCard>
           <VCardText class="d-flex align-center gap-3">
             <VAvatar color="error" variant="tonal" size="48">
-              <VIcon icon="ri-arrow-down-line" size="24" />
+              <VIcon icon="ri-money-cny-circle-line" size="24" />
             </VAvatar>
             <div>
-              <div class="text-caption text-medium-emphasis">รายจ่ายทั้งหมด</div>
+              <div class="text-caption text-medium-emphasis">ค่าใช้จ่ายทั้งหมด</div>
               <div class="text-h5 font-weight-bold text-error">
-                ฿{{ transactionStore.summary ? formatAmount(transactionStore.summary.totalExpense) : '0.00' }}
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-      <VCol cols="12" sm="6" lg="3">
-        <VCard>
-          <VCardText class="d-flex align-center gap-3">
-            <VAvatar
-              :color="transactionStore.summary && transactionStore.summary.balance >= 0 ? 'primary' : 'error'"
-              variant="tonal"
-              size="48"
-            >
-              <VIcon :icon="transactionStore.summary && transactionStore.summary.balance >= 0 ? 'ri-wallet-3-line' : 'ri-alert-line'" size="24" />
-            </VAvatar>
-            <div>
-              <div class="text-caption text-medium-emphasis">คงเหลือ</div>
-              <div class="text-h5 font-weight-bold" :class="transactionStore.summary && transactionStore.summary.balance >= 0 ? 'text-primary' : 'text-error'">
-                ฿{{ transactionStore.summary ? formatAmount(transactionStore.summary.balance) : '0.00' }}
+                ฿{{ formatAmount(totalExpenses) }}
               </div>
             </div>
           </VCardText>
@@ -81,11 +82,28 @@ function formatAmount(amount: number) {
         <VCard>
           <VCardText class="d-flex align-center gap-3">
             <VAvatar color="info" variant="tonal" size="48">
-              <VIcon icon="ri-list-check" size="24" />
+              <VIcon icon="ri-hotel-line" size="24" />
             </VAvatar>
             <div>
-              <div class="text-caption text-medium-emphasis">รายการทั้งหมด</div>
-              <div class="text-h5 font-weight-bold">{{ transactionStore.transactions.length }}</div>
+              <div class="text-caption text-medium-emphasis">ที่พัก</div>
+              <div class="text-h5 font-weight-bold text-info">
+                {{ accommodationStore.accommodations.length }}
+              </div>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+      <VCol cols="12" sm="6" lg="3">
+        <VCard>
+          <VCardText class="d-flex align-center gap-3">
+            <VAvatar color="success" variant="tonal" size="48">
+              <VIcon icon="ri-suitcase-line" size="24" />
+            </VAvatar>
+            <div>
+              <div class="text-caption text-medium-emphasis">ของใช้จำเป็น</div>
+              <div class="text-h5 font-weight-bold text-success">
+                {{ checkedItems }}/{{ totalItems }}
+              </div>
             </div>
           </VCardText>
         </VCard>
@@ -94,35 +112,26 @@ function formatAmount(amount: number) {
 
     <VRow>
       <VCol cols="12" md="6">
-        <VCard title="รายการล่าสุด">
+        <VCard title="ทริปล่าสุด">
           <VList lines="two">
             <VListItem
-              v-for="txn in transactionStore.transactions.slice(0, 5)"
-              :key="txn.id"
+              v-for="trip in tripStore.trips.slice(0, 5)"
+              :key="trip.id"
             >
               <template #prepend>
-                <VAvatar
-                  :color="txn.type === 'income' ? 'success' : 'error'"
-                  variant="tonal"
-                  size="36"
-                >
-                  <VIcon :icon="txn.type === 'income' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'" size="18" />
+                <VAvatar color="primary" variant="tonal" size="36">
+                  <VIcon icon="ri-map-pin-line" size="18" />
                 </VAvatar>
               </template>
-              <VListItemTitle>
-                {{ txn.description || txn.category }}
-                <span :class="txn.type === 'income' ? 'text-success' : 'text-error'" class="font-weight-medium">
-                  {{ txn.type === 'income' ? '+' : '-' }}฿{{ formatAmount(txn.amount) }}
-                </span>
-              </VListItemTitle>
-              <VListItemSubtitle>{{ new Date(txn.date).toLocaleDateString('th-TH') }}</VListItemSubtitle>
+              <VListItemTitle>{{ trip.name }}</VListItemTitle>
+              <VListItemSubtitle>{{ formatDate(trip.startDate) }} - {{ formatDate(trip.endDate) }}</VListItemSubtitle>
             </VListItem>
-            <VListItem v-if="transactionStore.transactions.length === 0" class="text-center text-medium-emphasis py-4">
-              ยังไม่มีรายการ
+            <VListItem v-if="tripStore.trips.length === 0" class="text-center text-medium-emphasis py-4">
+              ยังไม่มีทริป
             </VListItem>
           </VList>
           <VCardActions>
-            <RouterLink :to="{ name: 'transaction-page' }">
+            <RouterLink :to="{ name: 'trip-page' }">
               <VBtn variant="text" size="small">ดูทั้งหมด</VBtn>
             </RouterLink>
           </VCardActions>

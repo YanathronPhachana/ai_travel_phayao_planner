@@ -43,7 +43,9 @@ declare module 'vue-router/auto/routes' {
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'user-page': RouteRecordInfo<'user-page', '/user-page', Record<never, never>, Record<never, never>>,
-    'transaction-page': RouteRecordInfo<'transaction-page', '/transaction-page', Record<never, never>, Record<never, never>>,
+    'trip-page': RouteRecordInfo<'trip-page', '/trip-page', Record<never, never>, Record<never, never>>,
+    'destination-page': RouteRecordInfo<'destination-page', '/destination-page', Record<never, never>, Record<never, never>>,
+    'trip-detail-page': RouteRecordInfo<'trip-detail-page', '/trip-detail-page/:tripId', { tripId: ParamValue<true> }, { tripId: ParamValue<false> }>,
   }
 }
 

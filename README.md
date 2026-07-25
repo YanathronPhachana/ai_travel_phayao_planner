@@ -1,6 +1,8 @@
-# NgernNgern ThongThong — Personal Finance Tracker
+# AI Travel Phayao Planner 🤖🗺️
 
-เว็บแอปบันทึกรายรับ/รายจ่ายส่วนตัว สร้างจาก [starter-template](https://github.com/fakduai-logistics-and-digital-platform/starter-template)
+แอปวางแผนการท่องเที่ยวจังหวัดพะเยา ด้วย AI ช่วยจัดการทริป สถานที่ท่องเที่ยว ที่พัก ค่าใช้จ่าย และรายการของใช้จำเป็น
+
+สร้างจาก [starter-template](https://github.com/fakduai-logistics-and-digital-platform/starter-template)
 
 **Tech Stack**
 
@@ -14,7 +16,7 @@
 ## โครงสร้างโปรเจกต์
 
 ```
-ngernngern_thongthong/
+ai_travel_phayao_planner/
 ├── .github/workflows/deploy.yml  # CI/CD pipeline
 ├── backend/                      # Hono API (Cloudflare Workers)
 │   ├── src/domain/               # Entities, Repository interfaces
@@ -36,18 +38,59 @@ ngernngern_thongthong/
 | Resource | คำอธิบาย |
 |---|---|
 | `Users` | จัดการผู้ใช้ (ตัวอย่าง — มาจาก template) |
-| `Transactions` | บันทึกรายรับ/รายจ่าย — **หัวใจของแอปนี้** |
+| `Destinations` | สถานที่ท่องเที่ยวในจังหวัดพะเยา |
+| `Trips` | แผนการเดินทาง |
+| `Trip Expenses` | ค่าใช้จ่ายในแต่ละทริป |
+| `Accommodations` | ที่พักสำหรับแต่ละทริป |
+| `Packing Items` | รายการของใช้จำเป็นที่ต้องเตรียม |
 
-### Transactions API
+### Destinations API
 
 | Method | Path | คำอธิบาย |
 |---|---|---|
-| `GET` | `/api/v1/transactions` | รายการทั้งหมด (filter: `?type=income\|expense`) |
-| `GET` | `/api/v1/transactions/summary` | สรุปยอดรายรับ/รายจ่าย/คงเหลือ/แยกหมวด |
-| `POST` | `/api/v1/transactions` | เพิ่มรายการใหม่ |
-| `GET` | `/api/v1/transactions/:id` | ดูรายการเดียว |
-| `PATCH` | `/api/v1/transactions/:id` | แก้ไขรายการ |
-| `DELETE` | `/api/v1/transactions/:id` | ลบรายการ |
+| `GET` | `/api/v1/destinations` | รายการสถานที่ท่องเที่ยวทั้งหมด (filter: `?category=...`) |
+| `POST` | `/api/v1/destinations` | เพิ่มสถานที่ใหม่ |
+| `GET` | `/api/v1/destinations/:id` | ดูสถานที่เดียว |
+| `PATCH` | `/api/v1/destinations/:id` | แก้ไขสถานที่ |
+| `DELETE` | `/api/v1/destinations/:id` | ลบสถานที่ |
+
+### Trips API
+
+| Method | Path | คำอธิบาย |
+|---|---|---|
+| `GET` | `/api/v1/trips` | รายการทริปทั้งหมด |
+| `POST` | `/api/v1/trips` | สร้างทริปใหม่ |
+| `GET` | `/api/v1/trips/:id` | ดูทริปเดียว |
+| `PATCH` | `/api/v1/trips/:id` | แก้ไขทริป |
+| `DELETE` | `/api/v1/trips/:id` | ลบทริป |
+
+### Trip Expenses API
+
+| Method | Path | คำอธิบาย |
+|---|---|---|
+| `GET` | `/api/v1/trips/:tripId/expenses` | ค่าใช้จ่ายของทริป |
+| `POST` | `/api/v1/trips/:tripId/expenses` | เพิ่มค่าใช้จ่าย |
+| `GET` | `/api/v1/trips/:tripId/expenses/summary` | สรุปค่าใช้จ่ายแยกตามหมวดหมู่ |
+| `PATCH` | `/api/v1/trips/:tripId/expenses/:id` | แก้ไขค่าใช้จ่าย |
+| `DELETE` | `/api/v1/trips/:tripId/expenses/:id` | ลบค่าใช้จ่าย |
+
+### Accommodations API
+
+| Method | Path | คำอธิบาย |
+|---|---|---|
+| `GET` | `/api/v1/trips/:tripId/accommodations` | ที่พักของทริป |
+| `POST` | `/api/v1/trips/:tripId/accommodations` | เพิ่มที่พัก |
+| `PATCH` | `/api/v1/trips/:tripId/accommodations/:id` | แก้ไขที่พัก |
+| `DELETE` | `/api/v1/trips/:tripId/accommodations/:id` | ลบที่พัก |
+
+### Packing Items API
+
+| Method | Path | คำอธิบาย |
+|---|---|---|
+| `GET` | `/api/v1/trips/:tripId/packing` | รายการของใช้ของทริป |
+| `POST` | `/api/v1/trips/:tripId/packing` | เพิ่มของใช้ |
+| `PATCH` | `/api/v1/trips/:tripId/packing/:id` | แก้ไขของใช้ / toggle checked |
+| `DELETE` | `/api/v1/trips/:tripId/packing/:id` | ลบของใช้ |
 
 ## Local Development
 

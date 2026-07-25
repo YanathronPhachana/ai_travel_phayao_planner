@@ -1,27 +1,55 @@
 import type { CacheRepository } from '../domain/repositories/cache-repository'
-import type { TransactionRepository } from '../domain/repositories/transaction-repository'
+import type { DestinationRepository } from '../domain/repositories/destination-repository'
+import type { PackingItemRepository } from '../domain/repositories/packing-item-repository'
+import type { TripRepository } from '../domain/repositories/trip-repository'
+import type { TripExpenseRepository } from '../domain/repositories/trip-expense-repository'
+import type { AccommodationRepository } from '../domain/repositories/accommodation-repository'
 import type { UserRepository } from '../domain/repositories/user-repository'
-import { TransactionHandler } from '../handlers/transaction-handler'
+import { AccommodationHandler } from '../handlers/accommodation-handler'
+import { DestinationHandler } from '../handlers/destination-handler'
+import { PackingItemHandler } from '../handlers/packing-item-handler'
+import { TripHandler } from '../handlers/trip-handler'
+import { TripExpenseHandler } from '../handlers/trip-expense-handler'
 import { UserHandler } from '../handlers/user-handler'
-import { TransactionService } from '../services/transaction-service'
+import { AccommodationService } from '../services/accommodation-service'
+import { DestinationService } from '../services/destination-service'
+import { PackingItemService } from '../services/packing-item-service'
+import { TripService } from '../services/trip-service'
+import { TripExpenseService } from '../services/trip-expense-service'
 import { UserService } from '../services/user-service'
 
 export interface Repositories {
   userRepository: UserRepository
-  transactionRepository: TransactionRepository
+  destinationRepository: DestinationRepository
+  tripRepository: TripRepository
+  tripExpenseRepository: TripExpenseRepository
+  accommodationRepository: AccommodationRepository
+  packingItemRepository: PackingItemRepository
   cacheRepository: CacheRepository
 }
 
 export interface Container {
   userHandler: UserHandler
-  transactionHandler: TransactionHandler
+  destinationHandler: DestinationHandler
+  tripHandler: TripHandler
+  tripExpenseHandler: TripExpenseHandler
+  accommodationHandler: AccommodationHandler
+  packingItemHandler: PackingItemHandler
 }
 
 export function createContainer(repos: Repositories): Container {
   const userService = new UserService(repos.userRepository, repos.cacheRepository)
-  const transactionService = new TransactionService(repos.transactionRepository)
+  const destinationService = new DestinationService(repos.destinationRepository, repos.cacheRepository)
+  const tripService = new TripService(repos.tripRepository, repos.cacheRepository)
+  const tripExpenseService = new TripExpenseService(repos.tripRepository, repos.tripExpenseRepository)
+  const accommodationService = new AccommodationService(repos.tripRepository, repos.accommodationRepository)
+  const packingItemService = new PackingItemService(repos.tripRepository, repos.packingItemRepository)
   return {
     userHandler: new UserHandler(userService),
-    transactionHandler: new TransactionHandler(transactionService),
+    destinationHandler: new DestinationHandler(destinationService),
+    tripHandler: new TripHandler(tripService),
+    tripExpenseHandler: new TripExpenseHandler(tripExpenseService),
+    accommodationHandler: new AccommodationHandler(accommodationService),
+    packingItemHandler: new PackingItemHandler(packingItemService),
   }
 }

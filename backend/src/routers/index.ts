@@ -1,13 +1,21 @@
 import { Hono } from 'hono'
 import type { AppEnv } from '../types'
-import { createTransactionRouter } from './transaction-router'
+import { createAccommodationRouter } from './accommodation-router'
+import { createDestinationRouter } from './destination-router'
+import { createPackingItemRouter } from './packing-item-router'
+import { createTripRouter } from './trip-router'
+import { createTripExpenseRouter } from './trip-expense-router'
 import { createUserRouter } from './user-router'
 
 export function createApiRouter() {
   const api = new Hono<AppEnv>()
 
   api.route('/users', createUserRouter())
-  api.route('/transactions', createTransactionRouter())
+  api.route('/destinations', createDestinationRouter())
+  api.route('/trips', createTripRouter())
+  api.route('/trips/:tripId/expenses', createTripExpenseRouter())
+  api.route('/trips/:tripId/accommodations', createAccommodationRouter())
+  api.route('/trips/:tripId/packing', createPackingItemRouter())
 
   return api
 }

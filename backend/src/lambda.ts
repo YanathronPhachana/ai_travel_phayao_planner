@@ -4,13 +4,21 @@
 import { handle } from 'hono/aws-lambda'
 import { createApp } from './app'
 import { createContainer } from './di/container'
+import { MemoryAccommodationRepository } from './infrastructure/memory/memory-accommodation-repository'
 import { MemoryCacheRepository } from './infrastructure/memory/memory-cache-repository'
-import { MemoryTransactionRepository } from './infrastructure/memory/memory-transaction-repository'
+import { MemoryDestinationRepository } from './infrastructure/memory/memory-destination-repository'
+import { MemoryPackingItemRepository } from './infrastructure/memory/memory-packing-item-repository'
+import { MemoryTripRepository } from './infrastructure/memory/memory-trip-repository'
+import { MemoryTripExpenseRepository } from './infrastructure/memory/memory-trip-expense-repository'
 import { MemoryUserRepository } from './infrastructure/memory/memory-user-repository'
 
 const container = createContainer({
   userRepository: new MemoryUserRepository(),
-  transactionRepository: new MemoryTransactionRepository(),
+  destinationRepository: new MemoryDestinationRepository(),
+  tripRepository: new MemoryTripRepository(),
+  tripExpenseRepository: new MemoryTripExpenseRepository(),
+  accommodationRepository: new MemoryAccommodationRepository(),
+  packingItemRepository: new MemoryPackingItemRepository(),
   cacheRepository: new MemoryCacheRepository(),
 })
 

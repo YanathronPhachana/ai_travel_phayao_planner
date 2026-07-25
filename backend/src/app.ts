@@ -30,18 +30,22 @@ export function createApp(containerFactory: (env: Partial<Bindings>) => Containe
     openAPIRouteHandler(app, {
       documentation: {
         info: {
-          title: 'NgernNgern ThongThong API',
+          title: 'AI Travel Phayao Planner API',
           version: '1.0.0',
-          description: 'Personal finance API — track income and expenses on Cloudflare Workers (D1 + KV)',
+          description: 'AI Travel Planner API for Phayao — manage trips, destinations, accommodations, expenses, and packing lists on Cloudflare Workers (D1 + KV)',
         },
         tags: [
           { name: 'Users', description: 'User management' },
-          { name: 'Transactions', description: 'Income and expense tracking' },
+          { name: 'Destinations', description: 'Tourist destinations in Phayao' },
+          { name: 'Trips', description: 'Travel plans' },
+          { name: 'Trip Expenses', description: 'Expense tracking per trip' },
+          { name: 'Accommodations', description: 'Lodging per trip' },
+          { name: 'Packing Items', description: 'Packing checklist per trip' },
         ],
       },
     })
   )
-  app.get('/docs', Scalar({ url: '/openapi.json', pageTitle: 'NgernNgern ThongThong API Docs' }))
+  app.get('/docs', Scalar({ url: '/openapi.json', pageTitle: 'AI Travel Phayao Planner API Docs' }))
 
   app.notFound((c) => c.json({ error: { code: 'NOT_FOUND', message: 'Route not found' } }, 404))
 
