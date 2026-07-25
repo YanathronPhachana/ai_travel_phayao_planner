@@ -129,8 +129,6 @@ jobs:
           cd ..
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
-        with:
-          node-version: 22
 
       - name: Create Pages project if not exists
         run: npx wrangler pages project create ${{ secrets.PAGES_PROJECT_NAME }} --production-branch=main 2>&1 || true
