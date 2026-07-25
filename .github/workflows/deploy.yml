@@ -61,7 +61,8 @@ jobs:
           echo "=== ls node_modules/.bin ==="
           ls node_modules/.bin/ 2>&1 | head -15
           echo "=== Build ==="
-          npm run build 2>&1 || true
+          npm run build 2>&1 | tee /tmp/build-output.txt || true
+          echo "=== dist ==="
           echo "=== dist ==="
           ls -la dist/ 2>/dev/null || echo 'NO DIST'
 
@@ -71,6 +72,13 @@ jobs:
         with:
           name: frontend-dist
           path: frontend/dist/
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: /tmp/build-output.txt
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
 
