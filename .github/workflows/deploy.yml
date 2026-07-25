@@ -51,15 +51,19 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
+
+      - name: Build & Debug
         run: |
           rm -f pnpm-lock.yaml
           npm install --legacy-peer-deps --ignore-scripts 2>&1
-
-      - name: Build
-        run: |
-          echo "--- vite build ---"
-          ./node_modules/.bin/vite build 2>&1
+          echo "=== npm ls vite ==="
+          npm ls vite 2>&1 | head -15
+          echo "=== ls node_modules/.bin ==="
+          ls node_modules/.bin/ 2>&1 | head -15
+          echo "=== Build ==="
+          npm run build 2>&1 || true
+          echo "=== dist ==="
+          ls -la dist/ 2>/dev/null || echo 'NO DIST'
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
 
@@ -126,7 +130,7 @@ jobs:
           cd frontend
           rm -f pnpm-lock.yaml
           npm install --legacy-peer-deps --ignore-scripts 2>&1
-          ./node_modules/.bin/vite build 2>&1
+          npm run build 2>&1
           echo "--- dist ---"
           ls -la dist/ 2>/dev/null || echo "dist empty"
           cp -r dist/* ../dist/ 2>/dev/null || true
