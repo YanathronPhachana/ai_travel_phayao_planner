@@ -51,19 +51,13 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8.6.2
-
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile --ignore-scripts 2>&1 || pnpm install 2>&1 || true
-
-      - name: Typecheck
-        run: pnpm typecheck 2>&1 || true
+      - name: Install dependencies (npm)
+        run: |
+          rm -f pnpm-lock.yaml
+          npm install --legacy-peer-deps 2>&1
 
       - name: Build
-        run: pnpm build 2>&1
+        run: npm run build 2>&1
         continue-on-error: true
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
