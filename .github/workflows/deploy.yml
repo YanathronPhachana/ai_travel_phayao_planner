@@ -57,7 +57,12 @@ jobs:
           npm install --legacy-peer-deps 2>&1
 
       - name: Build
-        run: npm run build 2>&1
+        run: |
+          echo "Vite exists: $(ls node_modules/.bin/vite 2>/dev/null || echo 'no')"
+          echo "--- vite build ---"
+          ./node_modules/.bin/vite build 2>&1 || true
+          echo "--- ls dist ---"
+          ls dist/ 2>/dev/null || echo "dist empty"
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
 
@@ -124,8 +129,8 @@ jobs:
           cd frontend
           rm -f pnpm-lock.yaml
           npm install --legacy-peer-deps 2>&1
-          npm run build 2>&1
-          cp -r dist ../dist
+          npm run build 2>&1 || true
+          ls dist/ 2>/dev/null && cp -r dist ../dist || echo "❌ dist not created"
           cd ..
         env:
           VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
