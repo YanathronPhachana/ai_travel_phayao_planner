@@ -46,6 +46,7 @@ declare module 'vue-router/auto/routes' {
     'trip-page': RouteRecordInfo<'trip-page', '/trip-page', Record<never, never>, Record<never, never>>,
     'destination-page': RouteRecordInfo<'destination-page', '/destination-page', Record<never, never>, Record<never, never>>,
     'trip-detail-page': RouteRecordInfo<'trip-detail-page', '/trip-detail-page/:tripId', { tripId: ParamValue<true> }, { tripId: ParamValue<false> }>,
+    'chat-page': RouteRecordInfo<'chat-page', '/chat-page', Record<never, never>, Record<never, never>>,
   }
 }
 

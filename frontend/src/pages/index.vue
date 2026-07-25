@@ -137,6 +137,28 @@ const totalItems = computed(() => packingStore.items.length)
           </VCardActions>
         </VCard>
       </VCol>
+      <VCol cols="12" md="6">
+        <VCard color="primary" variant="tonal" class="h-100">
+          <VCardText class="d-flex flex-column justify-center h-100">
+            <div class="d-flex align-center gap-3 mb-3">
+              <VAvatar color="primary" size="48">
+                <VIcon icon="ri-robot-2-line" size="24" color="white" />
+              </VAvatar>
+              <div>
+                <div class="text-h6 font-weight-bold">AI วางแผนเที่ยว</div>
+                <div class="text-body-2 text-medium-emphasis">
+                  แชทกับ AI เพื่อวางแผนท่องเที่ยวพะเยา
+                </div>
+              </div>
+            </div>
+            <RouterLink :to="{ name: 'chat-page' }">
+              <VBtn color="primary" variant="flat" prepend-icon="ri-arrow-right-line">
+                เริ่มแชท
+              </VBtn>
+            </RouterLink>
+          </VCardText>
+        </VCard>
+      </VCol>
     </VRow>
   </div>
 </template>

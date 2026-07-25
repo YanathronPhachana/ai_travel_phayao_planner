@@ -21,6 +21,14 @@ export default [
     icon: { icon: 'ri-map-pin-line' },
   },
   {
+    heading: 'AI Assistant',
+  },
+  {
+    title: 'AI วางแผนเที่ยว',
+    to: { name: 'chat-page' },
+    icon: { icon: 'ri-robot-2-line' },
+  },
+  {
     heading: 'ระบบ',
   },
   {

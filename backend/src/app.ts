@@ -41,6 +41,7 @@ export function createApp(containerFactory: (env: Partial<Bindings>) => Containe
           { name: 'Trip Expenses', description: 'Expense tracking per trip' },
           { name: 'Accommodations', description: 'Lodging per trip' },
           { name: 'Packing Items', description: 'Packing checklist per trip' },
+          { name: 'Chat', description: 'AI chat assistant for travel planning' },
         ],
       },
     })
