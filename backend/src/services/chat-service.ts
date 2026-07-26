@@ -3,6 +3,7 @@ import type { CreateTripExpenseInput } from '../domain/entities/trip-expense'
 import type { CreateAccommodationInput } from '../domain/entities/accommodation'
 import type { CreatePackingItemInput } from '../domain/entities/packing-item'
 import { ValidationError } from '../domain/errors'
+import type { AiClient, AiMessage } from '../domain/repositories/ai-client'
 import type { TripRepository } from '../domain/repositories/trip-repository'
 import type { TripExpenseRepository } from '../domain/repositories/trip-expense-repository'
 import type { AccommodationRepository } from '../domain/repositories/accommodation-repository'
@@ -126,6 +127,21 @@ const restaurants: RestaurantInfo[] = [
   { name: 'ร้านส้มตำแม่น้อง', description: 'ส้มตำและอาหารอีสานรสเด็ด ราคาถูก บรรยากาศเป็นกันเอง' },
 ]
 
+const knowledgeBaseText = [
+  'สถานที่ท่องเที่ยว:',
+  ...destinations.map((d) => `- ${d.name} (${d.category}): ${d.description} กิจกรรม: ${d.activities.join(', ')}`),
+  '',
+  'ที่พัก:',
+  ...accommodations.map((a) => `- ${a.name} (${a.type}): ${a.priceRange}, ${a.location}. ${a.description}`),
+  '',
+  'ร้านอาหาร:',
+  ...restaurants.map((r) => `- ${r.name}: ${r.description}`),
+].join('\n')
+
+const SYSTEM_PROMPT = `คุณคือ AI ผู้ช่วยวางแผนการท่องเที่ยวจังหวัดพะเยา ประเทศไทย ตอบเป็นภาษาไทยเสมอ น้ำเสียงเป็นกันเองและกระชับ ใช้ข้อมูลอ้างอิงต่อไปนี้เป็นหลักในการแนะนำสถานที่ ที่พัก และร้านอาหาร หากผู้ใช้ถามเรื่องงบประมาณ ให้ช่วยประมาณการคร่าวๆ ตามจำนวนวันและจำนวนคน เมื่อผู้ใช้มีแผนที่ชัดเจนแล้ว ให้แนะนำให้กดปุ่ม "สร้างแผนเที่ยว"
+
+${knowledgeBaseText}`
+
 // ─── Session Store (in-memory) ───
 
 const sessions = new Map<string, ChatSession>()
@@ -209,7 +225,8 @@ export class ChatService {
     private readonly tripRepository: TripRepository,
     private readonly tripExpenseRepository: TripExpenseRepository,
     private readonly accommodationRepository: AccommodationRepository,
-    private readonly packingItemRepository: PackingItemRepository
+    private readonly packingItemRepository: PackingItemRepository,
+    private readonly aiClient: AiClient
   ) {}
 
   private getOrCreateSession(sessionId?: string): ChatSession {
@@ -225,14 +242,28 @@ export class ChatService {
     const session = this.getOrCreateSession(sessionId)
     session.messages.push({ role: 'user', text: userMessage, timestamp: new Date().toISOString() })
 
-    const { places, days, nights, travelers, preferences } = extractKeywords(userMessage)
-    const reply = this.buildReply(userMessage, places, days, nights, travelers, preferences)
-
+    const reply = await this.generateReply(session, userMessage)
     session.messages.push({ role: 'ai', text: reply, timestamp: new Date().toISOString() })
 
+    const { places } = extractKeywords(userMessage)
     const suggestions = this.buildSuggestions(session.messages, places)
 
     return { reply, suggestions, sessionId: session.id }
+  }
+
+  private async generateReply(session: ChatSession, userMessage: string): Promise<string> {
+    const history: AiMessage[] = session.messages.map((m) => ({
+      role: m.role === 'ai' ? 'model' : 'user',
+      text: m.text,
+    }))
+
+    try {
+      return await this.aiClient.generateReply(SYSTEM_PROMPT, history)
+    } catch (err) {
+      console.error('Gemini API call failed, falling back to rule-based reply:', err)
+      const { places, days, nights, travelers, preferences } = extractKeywords(userMessage)
+      return this.buildReply(userMessage, places, days, nights, travelers, preferences)
+    }
   }
 
   private buildReply(

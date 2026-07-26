@@ -1,3 +1,4 @@
+import type { AiClient } from '../domain/repositories/ai-client'
 import type { CacheRepository } from '../domain/repositories/cache-repository'
 import type { DestinationRepository } from '../domain/repositories/destination-repository'
 import type { PackingItemRepository } from '../domain/repositories/packing-item-repository'
@@ -40,7 +41,7 @@ export interface Container {
   chatHandler: ChatHandler
 }
 
-export function createContainer(repos: Repositories): Container {
+export function createContainer(repos: Repositories, aiClient: AiClient): Container {
   const userService = new UserService(repos.userRepository, repos.cacheRepository)
   const destinationService = new DestinationService(repos.destinationRepository, repos.cacheRepository)
   const tripService = new TripService(repos.tripRepository, repos.cacheRepository)
@@ -51,7 +52,8 @@ export function createContainer(repos: Repositories): Container {
     repos.tripRepository,
     repos.tripExpenseRepository,
     repos.accommodationRepository,
-    repos.packingItemRepository
+    repos.packingItemRepository,
+    aiClient
   )
   return {
     userHandler: new UserHandler(userService),

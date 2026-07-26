@@ -66,3 +66,4 @@ Follow the `user` files as the template, in this order:
 - `@cloudflare/workers-types` must be v5+ to satisfy wrangler v4's peer dependency.
 - Lambda has no D1/KV; `src/lambda.ts` uses memory repositories. Swap for DynamoDB/RDS implementations there without touching services.
 - CI (`.github/workflows/ci.yml`) deploys to Cloudflare on push to `main` (needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets). The Lambda deploy job is commented out.
+- Chat (`src/services/chat-service.ts`) calls Gemini via `GeminiClient` (`src/infrastructure/gemini/gemini-client.ts`), falling back to the rule-based reply if the API call fails. Needs a `GEMINI_API_KEY`: for local `wrangler dev` put it in `.dev.vars` (not `.env` — Workers don't read that); for a real deploy run `wrangler secret put GEMINI_API_KEY`. Lambda reads it from `process.env.GEMINI_API_KEY`.

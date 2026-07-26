@@ -4,6 +4,7 @@
 import { handle } from 'hono/aws-lambda'
 import { createApp } from './app'
 import { createContainer } from './di/container'
+import { GeminiClient } from './infrastructure/gemini/gemini-client'
 import { MemoryAccommodationRepository } from './infrastructure/memory/memory-accommodation-repository'
 import { MemoryCacheRepository } from './infrastructure/memory/memory-cache-repository'
 import { MemoryDestinationRepository } from './infrastructure/memory/memory-destination-repository'
@@ -12,15 +13,22 @@ import { MemoryTripRepository } from './infrastructure/memory/memory-trip-reposi
 import { MemoryTripExpenseRepository } from './infrastructure/memory/memory-trip-expense-repository'
 import { MemoryUserRepository } from './infrastructure/memory/memory-user-repository'
 
-const container = createContainer({
-  userRepository: new MemoryUserRepository(),
-  destinationRepository: new MemoryDestinationRepository(),
-  tripRepository: new MemoryTripRepository(),
-  tripExpenseRepository: new MemoryTripExpenseRepository(),
-  accommodationRepository: new MemoryAccommodationRepository(),
-  packingItemRepository: new MemoryPackingItemRepository(),
-  cacheRepository: new MemoryCacheRepository(),
-})
+// Lambda runs on Node, but tsconfig only pulls in @cloudflare/workers-types
+// (needed for server.ts) so `process` isn't otherwise declared.
+declare const process: { env: Record<string, string | undefined> }
+
+const container = createContainer(
+  {
+    userRepository: new MemoryUserRepository(),
+    destinationRepository: new MemoryDestinationRepository(),
+    tripRepository: new MemoryTripRepository(),
+    tripExpenseRepository: new MemoryTripExpenseRepository(),
+    accommodationRepository: new MemoryAccommodationRepository(),
+    packingItemRepository: new MemoryPackingItemRepository(),
+    cacheRepository: new MemoryCacheRepository(),
+  },
+  new GeminiClient(process.env.GEMINI_API_KEY ?? '')
+)
 
 const app = createApp(() => container)
 

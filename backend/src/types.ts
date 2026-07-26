@@ -5,6 +5,7 @@ export interface Bindings {
   DB: D1Database
   KV: KVNamespace
   ENVIRONMENT?: string
+  GEMINI_API_KEY: string
 }
 
 export interface Variables {
