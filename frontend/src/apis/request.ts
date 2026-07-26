@@ -11,6 +11,11 @@ export async function request<T>(url: string, init?: RequestInit): Promise<T> {
     ...init,
   })
 
+  // 204 No Content (delete endpoints) has no body and no content-type by
+  // design — that's a successful response, not a JSON-parsing failure.
+  if (res.status === 204)
+    return undefined as T
+
   const contentType = res.headers.get('content-type') ?? ''
   const isJson = contentType.includes('application/json')
 
