@@ -157,7 +157,9 @@ export function hexToRgb(hex: string) {
     return r + r + g + g + b + b
   })
 
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  // Trailing alpha pair (e.g. VColorPicker's 8-digit "#RRGGBBAA" output) is
+  // matched and ignored — callers here only ever want the RGB channels.
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})(?:[a-f\d]{2})?$/i.exec(hex)
 
   return result ? `${Number.parseInt(result[1], 16)},${Number.parseInt(result[2], 16)},${Number.parseInt(result[3], 16)}` : null
 }
