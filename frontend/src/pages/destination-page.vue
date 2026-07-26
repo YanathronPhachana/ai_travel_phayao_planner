@@ -92,6 +92,11 @@ const categoryColors: Record<string, string> = {
 
 watch(selectedCategory, () => destinationStore.fetchDestinations(selectedCategory.value))
 
+const destinationCategoryItems = computed(() => [
+  { title: 'ทั้งหมด', value: undefined },
+  ...Object.entries(destinationCategoryLabels).map(([k, v]) => ({ title: v, value: k })),
+])
+
 onMounted(() => destinationStore.fetchDestinations())
 </script>
 
@@ -108,7 +113,7 @@ onMounted(() => destinationStore.fetchDestinations())
 
     <VSelect
       v-model="selectedCategory"
-      :items="[{ title: 'ทั้งหมด', value: undefined }, ...Object.entries(destinationCategoryLabels).map(([k, v]) => ({ title: v, value: k })]"
+      :items="destinationCategoryItems"
       label="กรองตามหมวดหมู่"
       class="mb-4"
       style="max-width: 300px"
