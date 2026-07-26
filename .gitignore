@@ -6,3 +6,7 @@ wrangler.jsonc
 .DS_Store
 *.log
 
+-e 
+# Temp deploy files
+deploy-frontend/
+.wrangler/
