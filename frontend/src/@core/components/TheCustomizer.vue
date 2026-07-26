@@ -6,6 +6,7 @@ import { Direction, Layout, Skins, Theme } from '@core/enums'
 import { useConfigStore } from '@core/stores/config'
 import { AppContentLayoutNav, ContentWidth } from '@layouts/enums'
 import { cookieRef, namespaceConfig } from '@layouts/stores/config'
+import { getContrastTextColor } from '@layouts/utils'
 import { themeConfig } from '@themeConfig'
 
 import borderSkinDark from '@images/customizer-icons/border-dark.svg'
@@ -56,12 +57,19 @@ watch(
 
 // ℹ️ It will set primary color for current theme only
 const setPrimaryColor = useDebounceFn((color: { main: string; darken: string }) => {
+  const onPrimary = getContrastTextColor(color.main)
+
   vuetifyTheme.themes.value[vuetifyTheme.name.value].colors.primary = color.main
   vuetifyTheme.themes.value[vuetifyTheme.name.value].colors['primary-darken-1'] = color.darken
+  // ℹ️ Keep text on top of the primary color readable no matter which
+  // color is picked (e.g. white primary would otherwise pair with the
+  // theme's hardcoded white on-primary text and become invisible).
+  vuetifyTheme.themes.value[vuetifyTheme.name.value].colors['on-primary'] = onPrimary
 
   // ℹ️ We need to store this color value in cookie so vuetify plugin can pick on next reload
   cookieRef<string | null>(`${vuetifyTheme.name.value}ThemePrimaryColor`, null).value = color.main
   cookieRef<string | null>(`${vuetifyTheme.name.value}ThemePrimaryDarkenColor`, null).value = color.darken
+  cookieRef<string | null>(`${vuetifyTheme.name.value}ThemeOnPrimaryColor`, null).value = onPrimary
 
   // ℹ️ Update initial loader color
   useStorage<string | null>(namespaceConfig('initial-loader-color'), null).value = color.main
@@ -252,6 +260,8 @@ async function resetCustomizer() {
     vuetifyTheme.themes.value.dark.colors.primary = staticPrimaryColor
     vuetifyTheme.themes.value.light.colors['primary-darken-1'] = staticPrimaryDarkenColor
     vuetifyTheme.themes.value.dark.colors['primary-darken-1'] = staticPrimaryDarkenColor
+    vuetifyTheme.themes.value.light.colors['on-primary'] = '#fff'
+    vuetifyTheme.themes.value.dark.colors['on-primary'] = '#fff'
 
     configStore.theme = themeConfig.app.theme
     configStore.skin = themeConfig.app.skin
@@ -276,6 +286,8 @@ async function resetCustomizer() {
     cookieRef('darkThemePrimaryColor', null).value = null
     cookieRef('lightThemePrimaryDarkenColor', null).value = null
     cookieRef('darkThemePrimaryDarkenColor', null).value = null
+    cookieRef('lightThemeOnPrimaryColor', null).value = null
+    cookieRef('darkThemeOnPrimaryColor', null).value = null
 
     await nextTick()
     await nextTick()

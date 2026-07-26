@@ -163,6 +163,24 @@ export function hexToRgb(hex: string) {
 }
 
 /**
+ * Pick black or white text so it stays readable on top of any given
+ * background color (used for the customizer's primary-color picker, so
+ * choosing a light/white primary doesn't produce invisible white-on-white
+ * text for "on-primary" elements like the active sidebar item).
+ * @param hex background color
+ */
+export function getContrastTextColor(hex: string): string {
+  const rgb = hexToRgb(hex)
+  if (!rgb)
+    return '#ffffff'
+
+  const [r, g, b] = rgb.split(',').map(Number)
+  const luminance = (0.299 * r! + 0.587 * g! + 0.114 * b!) / 255
+
+  return luminance > 0.6 ? '#000000' : '#ffffff'
+}
+
+/**
  *RGBA color to Hex color with / without opacity
  */
 export function rgbaToHex(rgba: string, forceRemoveAlpha = false) {
