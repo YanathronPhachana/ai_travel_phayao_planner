@@ -23,21 +23,42 @@ export const useAccommodationStore = defineStore('AccommodationStore', () => {
   }
 
   async function createAccommodation(tripId: string, body: CreateAccommodationBody) {
-    const res = await accommodationApi.create(tripId, body)
-    accommodations.value.unshift(res.data)
-    return res.data
+    error.value = null
+    try {
+      const res = await accommodationApi.create(tripId, body)
+      accommodations.value.unshift(res.data)
+      return res.data
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   async function updateAccommodation(tripId: string, id: string, body: UpdateAccommodationBody) {
-    const res = await accommodationApi.update(tripId, id, body)
-    const idx = accommodations.value.findIndex(a => a.id === id)
-    if (idx !== -1) accommodations.value[idx] = res.data
-    return res.data
+    error.value = null
+    try {
+      const res = await accommodationApi.update(tripId, id, body)
+      const idx = accommodations.value.findIndex(a => a.id === id)
+      if (idx !== -1) accommodations.value[idx] = res.data
+      return res.data
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   async function deleteAccommodation(tripId: string, id: string) {
-    await accommodationApi.remove(tripId, id)
-    accommodations.value = accommodations.value.filter(a => a.id !== id)
+    error.value = null
+    try {
+      await accommodationApi.remove(tripId, id)
+      accommodations.value = accommodations.value.filter(a => a.id !== id)
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   return { accommodations, isLoading, error, fetchAccommodations, createAccommodation, updateAccommodation, deleteAccommodation }

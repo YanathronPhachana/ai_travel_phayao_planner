@@ -61,6 +61,9 @@ async function submit() {
       await destinationStore.createDestination(form.value as CreateDestinationBody)
     dialog.value = false
   }
+  catch {
+    // error already recorded in destinationStore.error and rendered via VAlert above
+  }
   finally {
     isSubmitting.value = false
   }
@@ -72,6 +75,9 @@ async function confirmDelete() {
   try {
     await destinationStore.deleteDestination(deletingDestination.value.id)
     deleteDialog.value = false
+  }
+  catch {
+    // error already recorded in destinationStore.error and rendered via VAlert above
   }
   finally {
     isSubmitting.value = false

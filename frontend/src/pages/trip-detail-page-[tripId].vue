@@ -1,12 +1,20 @@
+<route lang="json">
+{
+  "name": "trip-detail-page"
+}
+</route>
+
 <script setup lang="ts">
 import { useSEO } from '@/composables/useSEO'
 import { useTripStore } from '@/stores/use-trip-store'
 import { useTripExpenseStore } from '@/stores/use-trip-expense-store'
 import { useAccommodationStore } from '@/stores/use-accommodation-store'
 import { usePackingItemStore } from '@/stores/use-packing-item-store'
+import { useDestinationStore } from '@/stores/use-destination-store'
 import { expenseCategoryLabels } from '@/models/trip-expense'
 import { accommodationTypeLabels } from '@/models/accommodation'
 import { packingCategoryLabels } from '@/models/packing-item'
+import { destinationCategoryLabels } from '@/models/destination'
 import type { CreateTripExpenseBody, UpdateTripExpenseBody, TripExpense, CreateAccommodationBody, UpdateAccommodationBody, Accommodation, CreatePackingItemBody, UpdatePackingItemBody, PackingItem } from '@/models'
 
 const route = useRoute()
@@ -21,11 +29,19 @@ const tripStore = useTripStore()
 const expenseStore = useTripExpenseStore()
 const accommodationStore = useAccommodationStore()
 const packingStore = usePackingItemStore()
+const destinationStore = useDestinationStore()
 
 const activeTab = ref('expenses')
 
+const tripDestinations = computed(() =>
+  (tripStore.currentTrip?.destinationIds ?? [])
+    .map(id => destinationStore.destinations.find(d => d.id === id))
+    .filter((d): d is NonNullable<typeof d> => Boolean(d))
+)
+
 onMounted(async () => {
   await tripStore.fetchTrip(tripId.value)
+  await destinationStore.fetchDestinations()
   await loadTabData()
 })
 
@@ -91,11 +107,12 @@ async function submitExpense() {
     else
       await expenseStore.createExpense(tripId.value, expenseForm.value as CreateTripExpenseBody)
     expenseDialog.value = false
-  } finally { isSubmitting.value = false }
+  } catch { /* error already recorded in expenseStore.error and rendered via VAlert above */ }
+  finally { isSubmitting.value = false }
 }
 
 async function deleteExpense(id: string) {
-  await expenseStore.deleteExpense(tripId.value, id)
+  try { await expenseStore.deleteExpense(tripId.value, id) } catch { /* handled via expenseStore.error */ }
 }
 
 // Accommodation dialog
@@ -135,11 +152,12 @@ async function submitAcc() {
     else
       await accommodationStore.createAccommodation(tripId.value, accForm.value as CreateAccommodationBody)
     accDialog.value = false
-  } finally { isSubmitting.value = false }
+  } catch { /* error already recorded in accommodationStore.error and rendered via VAlert above */ }
+  finally { isSubmitting.value = false }
 }
 
 async function deleteAcc(id: string) {
-  await accommodationStore.deleteAccommodation(tripId.value, id)
+  try { await accommodationStore.deleteAccommodation(tripId.value, id) } catch { /* handled via accommodationStore.error */ }
 }
 
 // Packing dialog
@@ -174,15 +192,17 @@ async function submitPack() {
     else
       await packingStore.createItem(tripId.value, packForm.value as CreatePackingItemBody)
     packDialog.value = false
-  } finally { isSubmitting.value = false }
+  } catch { /* error already recorded in packingStore.error and rendered via VAlert above */ }
+  finally { isSubmitting.value = false }
 }
 
 async function deletePack(id: string) {
-  await packingStore.deleteItem(tripId.value, id)
+  try { await packingStore.deleteItem(tripId.value, id) } catch { /* handled via packingStore.error */ }
 }
 
 async function toggleCheck(item: PackingItem) {
-  await packingStore.updateItem(tripId.value, item.id, { isChecked: !item.isChecked })
+  try { await packingStore.updateItem(tripId.value, item.id, { isChecked: !item.isChecked }) }
+  catch { /* handled via packingStore.error */ }
 }
 
 const checkedCount = computed(() => packingStore.items.filter(i => i.isChecked).length)
@@ -204,6 +224,10 @@ const progressPercent = computed(() => totalPackItems.value > 0 ? Math.round((ch
         </div>
       </div>
     </div>
+
+    <VAlert v-if="expenseStore.error" type="error" class="mb-4" :text="expenseStore.error" closable @click:close="expenseStore.error = null" />
+    <VAlert v-if="accommodationStore.error" type="error" class="mb-4" :text="accommodationStore.error" closable @click:close="accommodationStore.error = null" />
+    <VAlert v-if="packingStore.error" type="error" class="mb-4" :text="packingStore.error" closable @click:close="packingStore.error = null" />
 
     <VTabs v-model="activeTab" class="mb-4">
       <VTab value="expenses">
@@ -345,18 +369,22 @@ const progressPercent = computed(() => totalPackItems.value > 0 ? Math.round((ch
     <!-- Destinations Tab -->
     <div v-if="activeTab === 'destinations'">
       <VAlert type="info" class="mb-4">
-        สถานที่ท่องเที่ยวที่เลือกไว้สำหรับทริปนี้ จัดการสถานที่ท่องเที่ยวได้ที่เมนู "สถานที่ท่องเที่ยว"
+        แก้ไขสถานที่ท่องเที่ยวของทริปนี้ได้ที่หน้า "จัดการทริป" (แก้ไขทริป)
       </VAlert>
       <VRow>
-        <VCol v-for="destId in (tripStore.currentTrip?.destinationIds ?? [])" :key="destId" cols="12" sm="6" lg="4">
+        <VCol v-for="dest in tripDestinations" :key="dest.id" cols="12" sm="6" lg="4">
           <VCard>
+            <VCardItem>
+              <VCardTitle>{{ dest.name }}</VCardTitle>
+              <VCardSubtitle>{{ destinationCategoryLabels[dest.category] || dest.category }}</VCardSubtitle>
+            </VCardItem>
             <VCardText>
-              <div class="text-caption text-medium-emphasis">Destination ID</div>
-              <div class="font-weight-medium">{{ destId }}</div>
+              <div v-if="dest.location" class="text-caption text-medium-emphasis mb-1">{{ dest.location }}</div>
+              <div v-if="dest.description" class="text-caption text-medium-emphasis text-truncate">{{ dest.description }}</div>
             </VCardText>
           </VCard>
         </VCol>
-        <VCol v-if="(tripStore.currentTrip?.destinationIds ?? []).length === 0" cols="12" class="text-center text-medium-emphasis py-8">
+        <VCol v-if="tripDestinations.length === 0" cols="12" class="text-center text-medium-emphasis py-8">
           ยังไม่ได้เลือกสถานที่ท่องเที่ยว
         </VCol>
       </VRow>

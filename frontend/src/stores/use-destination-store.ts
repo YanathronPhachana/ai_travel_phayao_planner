@@ -23,21 +23,42 @@ export const useDestinationStore = defineStore('DestinationStore', () => {
   }
 
   async function createDestination(body: CreateDestinationBody) {
-    const res = await destinationApi.create(body)
-    destinations.value.unshift(res.data)
-    return res.data
+    error.value = null
+    try {
+      const res = await destinationApi.create(body)
+      destinations.value.unshift(res.data)
+      return res.data
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   async function updateDestination(id: string, body: UpdateDestinationBody) {
-    const res = await destinationApi.update(id, body)
-    const idx = destinations.value.findIndex(d => d.id === id)
-    if (idx !== -1) destinations.value[idx] = res.data
-    return res.data
+    error.value = null
+    try {
+      const res = await destinationApi.update(id, body)
+      const idx = destinations.value.findIndex(d => d.id === id)
+      if (idx !== -1) destinations.value[idx] = res.data
+      return res.data
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   async function deleteDestination(id: string) {
-    await destinationApi.remove(id)
-    destinations.value = destinations.value.filter(d => d.id !== id)
+    error.value = null
+    try {
+      await destinationApi.remove(id)
+      destinations.value = destinations.value.filter(d => d.id !== id)
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   return { destinations, isLoading, error, fetchDestinations, createDestination, updateDestination, deleteDestination }

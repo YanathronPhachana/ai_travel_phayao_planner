@@ -122,6 +122,8 @@ function formatTime(iso: string) {
       AI Travel Planner
     </h1>
 
+    <VAlert v-if="chatStore.error" type="error" class="mb-4" :text="chatStore.error" closable @click:close="chatStore.error = null" />
+
     <VCard class="mb-4" elevation="1">
       <div ref="chatContainer" class="chat-container pa-4">
         <div

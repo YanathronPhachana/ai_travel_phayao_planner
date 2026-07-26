@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useSEO } from '@/composables/useSEO'
 import { useTripStore } from '@/stores/use-trip-store'
+import { useDestinationStore } from '@/stores/use-destination-store'
 import type { CreateTripBody, Trip, UpdateTripBody } from '@/models'
 
 useSEO({
@@ -11,6 +12,10 @@ useSEO({
 
 const tripStore = useTripStore()
 const { trips, isLoading, error } = storeToRefs(tripStore)
+
+const destinationStore = useDestinationStore()
+const { destinations } = storeToRefs(destinationStore)
+const destinationOptions = computed(() => destinations.value.map(d => ({ value: d.id, title: d.name })))
 
 const dialog = ref(false)
 const deleteDialog = ref(false)
@@ -60,6 +65,9 @@ async function submit() {
       await tripStore.createTrip(form.value as CreateTripBody)
     dialog.value = false
   }
+  catch {
+    // error already recorded in tripStore.error and rendered via VAlert above
+  }
   finally {
     isSubmitting.value = false
   }
@@ -71,6 +79,9 @@ async function confirmDelete() {
   try {
     await tripStore.deleteTrip(deletingTrip.value.id)
     deleteDialog.value = false
+  }
+  catch {
+    // error already recorded in tripStore.error and rendered via VAlert above
   }
   finally {
     isSubmitting.value = false
@@ -86,7 +97,16 @@ function formatAmount(amount: number | null) {
   return '฿' + new Intl.NumberFormat('th-TH').format(amount)
 }
 
-onMounted(() => tripStore.fetchTrips())
+function destinationNames(destinationIds: string[]) {
+  return destinationIds
+    .map(id => destinations.value.find(d => d.id === id)?.name)
+    .filter((name): name is string => Boolean(name))
+}
+
+onMounted(() => {
+  tripStore.fetchTrips()
+  destinationStore.fetchDestinations()
+})
 </script>
 
 <template>
@@ -121,6 +141,11 @@ onMounted(() => tripStore.fetchTrips())
             </div>
             <div v-if="trip.notes" class="text-caption text-medium-emphasis text-truncate">
               {{ trip.notes }}
+            </div>
+            <div v-if="destinationNames(trip.destinationIds).length" class="mt-2">
+              <VChip v-for="name in destinationNames(trip.destinationIds)" :key="name" size="small" class="mr-1 mb-1">
+                {{ name }}
+              </VChip>
             </div>
           </VCardText>
           <VCardActions>
@@ -157,6 +182,15 @@ onMounted(() => tripStore.fetchTrips())
               </VCol>
             </VRow>
             <VTextField v-model.number="form.totalBudget" label="งบประมาณ (บาท)" type="number" class="mt-4" />
+            <VAutocomplete
+              v-model="form.destinationIds"
+              :items="destinationOptions"
+              label="สถานที่ท่องเที่ยว"
+              multiple
+              chips
+              closable-chips
+              class="mt-4"
+            />
             <VTextarea v-model="form.notes" label="หมายเหตุ" rows="2" class="mt-4" />
           </VForm>
         </VCardText>

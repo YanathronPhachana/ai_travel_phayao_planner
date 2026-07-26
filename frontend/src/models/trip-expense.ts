@@ -41,11 +41,13 @@ export interface TripExpenseResponse {
   data: TripExpense
 }
 
+export interface ExpenseSummary {
+  total: number
+  byCategory: Record<string, number>
+}
+
 export interface ExpenseSummaryResponse {
-  data: {
-    total: number
-    byCategory: Record<string, number>
-  }
+  data: ExpenseSummary
 }
 
 export const expenseCategoryLabels: Record<ExpenseCategory, string> = {

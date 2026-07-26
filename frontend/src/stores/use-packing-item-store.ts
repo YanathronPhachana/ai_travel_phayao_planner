@@ -23,21 +23,42 @@ export const usePackingItemStore = defineStore('PackingItemStore', () => {
   }
 
   async function createItem(tripId: string, body: CreatePackingItemBody) {
-    const res = await packingItemApi.create(tripId, body)
-    items.value.unshift(res.data)
-    return res.data
+    error.value = null
+    try {
+      const res = await packingItemApi.create(tripId, body)
+      items.value.unshift(res.data)
+      return res.data
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   async function updateItem(tripId: string, id: string, body: UpdatePackingItemBody) {
-    const res = await packingItemApi.update(tripId, id, body)
-    const idx = items.value.findIndex(i => i.id === id)
-    if (idx !== -1) items.value[idx] = res.data
-    return res.data
+    error.value = null
+    try {
+      const res = await packingItemApi.update(tripId, id, body)
+      const idx = items.value.findIndex(i => i.id === id)
+      if (idx !== -1) items.value[idx] = res.data
+      return res.data
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   async function deleteItem(tripId: string, id: string) {
-    await packingItemApi.remove(tripId, id)
-    items.value = items.value.filter(i => i.id !== id)
+    error.value = null
+    try {
+      await packingItemApi.remove(tripId, id)
+      items.value = items.value.filter(i => i.id !== id)
+    }
+    catch (e: any) {
+      error.value = e.message
+      throw e
+    }
   }
 
   return { items, isLoading, error, fetchItems, createItem, updateItem, deleteItem }
