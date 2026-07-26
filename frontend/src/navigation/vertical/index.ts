@@ -4,7 +4,7 @@ export default [
   },
   {
     title: 'หน้าแรก',
-    to: { name: 'root' },
+    to: { name: 'dashboard-page' },
     icon: { icon: 'ri-home-line' },
   },
   {
@@ -14,11 +14,6 @@ export default [
     title: 'จัดการทริป',
     to: { name: 'trip-page' },
     icon: { icon: 'ri-road-map-line' },
-  },
-  {
-    title: 'สถานที่เที่ยว',
-    to: { name: 'destination-page' },
-    icon: { icon: 'ri-map-pin-line' },
   },
   {
     heading: 'AI Assistant',

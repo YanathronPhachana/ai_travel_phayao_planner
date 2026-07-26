@@ -1,164 +1,226 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useSEO } from '@/composables/useSEO'
-import { useTripStore } from '@/stores/use-trip-store'
-import { useTripExpenseStore } from '@/stores/use-trip-expense-store'
-import { useAccommodationStore } from '@/stores/use-accommodation-store'
-import { usePackingItemStore } from '@/stores/use-packing-item-store'
+
+definePage({
+  meta: {
+    layout: 'blank',
+  },
+})
 
 useSEO({
-  title: 'แดชบอร์ด - AI Travel Phayao Planner',
-  description: 'ภาพรวมการวางแผนท่องเที่ยวพะเยา',
-  keywords: ['dashboard', 'travel', 'phayao', 'trips'],
+  title: 'AI Travel Phayao Plan',
+  description: 'เริ่มต้นวางแผนเที่ยวพะเยากับ AI Travel Phayao Plan',
+  keywords: ['welcome', 'phayao', 'travel', 'kwan phayao'],
 })
 
-const tripStore = useTripStore()
-const expenseStore = useTripExpenseStore()
-const accommodationStore = useAccommodationStore()
-const packingStore = usePackingItemStore()
+const router = useRouter()
+const revealed = ref(false)
 
-onMounted(async () => {
-  await tripStore.fetchTrips()
-  if (tripStore.trips.length > 0) {
-    const latest = tripStore.trips[0]
-    await Promise.all([
-      expenseStore.fetchExpenses(latest.id),
-      expenseStore.fetchSummary(latest.id),
-      accommodationStore.fetchAccommodations(latest.id),
-      packingStore.fetchItems(latest.id),
-    ])
-  }
+onMounted(() => {
+  requestAnimationFrame(() => {
+    revealed.value = true
+  })
 })
 
-function formatAmount(amount: number) {
-  return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount)
+function go(name: string) {
+  router.push({ name })
 }
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('th-TH', { dateStyle: 'medium' })
-}
-
-const totalExpenses = computed(() => expenseStore.summary?.total ?? 0)
-const checkedItems = computed(() => packingStore.items.filter(i => i.isChecked).length)
-const totalItems = computed(() => packingStore.items.length)
 </script>
 
 <template>
-  <div>
-    <h1 class="text-h5 font-weight-bold mb-6">แดชบอร์ด</h1>
+  <div class="welcome-hero">
+    <div class="hero-bg" />
+    <div class="hero-overlay" />
 
-    <VRow class="mb-6">
-      <VCol cols="12" sm="6" lg="3">
-        <VCard>
-          <VCardText class="d-flex align-center gap-3">
-            <VAvatar color="primary" variant="tonal" size="48">
-              <VIcon icon="ri-map-line" size="24" />
-            </VAvatar>
-            <div>
-              <div class="text-caption text-medium-emphasis">จำนวนทริป</div>
-              <div class="text-h5 font-weight-bold text-primary">
-                {{ tripStore.trips.length }}
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-      <VCol cols="12" sm="6" lg="3">
-        <VCard>
-          <VCardText class="d-flex align-center gap-3">
-            <VAvatar color="error" variant="tonal" size="48">
-              <VIcon icon="ri-money-cny-circle-line" size="24" />
-            </VAvatar>
-            <div>
-              <div class="text-caption text-medium-emphasis">ค่าใช้จ่ายทั้งหมด</div>
-              <div class="text-h5 font-weight-bold text-error">
-                ฿{{ formatAmount(totalExpenses) }}
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-      <VCol cols="12" sm="6" lg="3">
-        <VCard>
-          <VCardText class="d-flex align-center gap-3">
-            <VAvatar color="info" variant="tonal" size="48">
-              <VIcon icon="ri-hotel-line" size="24" />
-            </VAvatar>
-            <div>
-              <div class="text-caption text-medium-emphasis">ที่พัก</div>
-              <div class="text-h5 font-weight-bold text-info">
-                {{ accommodationStore.accommodations.length }}
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-      <VCol cols="12" sm="6" lg="3">
-        <VCard>
-          <VCardText class="d-flex align-center gap-3">
-            <VAvatar color="success" variant="tonal" size="48">
-              <VIcon icon="ri-suitcase-line" size="24" />
-            </VAvatar>
-            <div>
-              <div class="text-caption text-medium-emphasis">ของใช้จำเป็น</div>
-              <div class="text-h5 font-weight-bold text-success">
-                {{ checkedItems }}/{{ totalItems }}
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
+    <!-- Content -->
+    <div class="hero-content">
+      <div class="hero-badge" :class="{ 'is-in': revealed }">
+        <VIcon icon="ri-map-pin-2-line" size="16" class="mr-1" />
+        กว๊านพะเยา · จังหวัดพะเยา
+      </div>
 
-    <VRow>
-      <VCol cols="12" md="6">
-        <VCard title="ทริปล่าสุด">
-          <VList lines="two">
-            <VListItem
-              v-for="trip in tripStore.trips.slice(0, 5)"
-              :key="trip.id"
-            >
-              <template #prepend>
-                <VAvatar color="primary" variant="tonal" size="36">
-                  <VIcon icon="ri-map-pin-line" size="18" />
-                </VAvatar>
-              </template>
-              <VListItemTitle>{{ trip.name }}</VListItemTitle>
-              <VListItemSubtitle>{{ formatDate(trip.startDate) }} - {{ formatDate(trip.endDate) }}</VListItemSubtitle>
-            </VListItem>
-            <VListItem v-if="tripStore.trips.length === 0" class="text-center text-medium-emphasis py-4">
-              ยังไม่มีทริป
-            </VListItem>
-          </VList>
-          <VCardActions>
-            <RouterLink :to="{ name: 'trip-page' }">
-              <VBtn variant="text" size="small">ดูทั้งหมด</VBtn>
-            </RouterLink>
-          </VCardActions>
-        </VCard>
-      </VCol>
-      <VCol cols="12" md="6">
-        <VCard color="primary" variant="tonal" class="h-100">
-          <VCardText class="d-flex flex-column justify-center h-100">
-            <div class="d-flex align-center gap-3 mb-3">
-              <VAvatar color="primary" size="48">
-                <VIcon icon="ri-robot-2-line" size="24" color="white" />
-              </VAvatar>
-              <div>
-                <div class="text-h6 font-weight-bold">AI วางแผนเที่ยว</div>
-                <div class="text-body-2 text-medium-emphasis">
-                  แชทกับ AI เพื่อวางแผนท่องเที่ยวพะเยา
-                </div>
-              </div>
-            </div>
-            <RouterLink :to="{ name: 'chat-page' }">
-              <VBtn color="primary" variant="flat" prepend-icon="ri-arrow-right-line">
-                เริ่มแชท
-              </VBtn>
-            </RouterLink>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
+      <h1 class="hero-title" :class="{ 'is-in': revealed }">
+        Welcome to <span class="hero-title-accent">Phayao</span>
+      </h1>
+
+      <p class="hero-subtitle" :class="{ 'is-in': revealed }">
+        Click any button
+      </p>
+
+      <div class="hero-actions" :class="{ 'is-in': revealed }">
+        <VBtn
+          size="large"
+          rounded="pill"
+          color="primary"
+          prepend-icon="ri-magic-line"
+          class="hero-btn"
+          @click="go('chat-page')"
+        >
+          เริ่มวางแผนเที่ยวกับ AI
+        </VBtn>
+        <VBtn
+          size="large"
+          rounded="pill"
+          variant="tonal"
+          color="primary"
+          prepend-icon="ri-suitcase-3-line"
+          class="hero-btn"
+          @click="go('trip-page')"
+        >
+          จัดการทริปของฉัน
+        </VBtn>
+      </div>
+
+      <div class="scroll-hint" :class="{ 'is-in': revealed }">
+        <VIcon icon="ri-arrow-down-line" size="20" />
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.welcome-hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/image-proxy.png');
+  background-size: cover;
+  background-position: center;
+  animation: kenBurns 24s ease-in-out infinite alternate;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(6 40 34 / 35%) 0%,
+    rgb(8 46 40 / 45%) 45%,
+    rgb(6 35 30 / 75%) 100%
+  );
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  padding: 32px 24px 56px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 18%);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgb(255 255 255 / 30%);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #eafff6;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.hero-title {
+  margin-block: 20px 12px;
+  font-size: clamp(2.25rem, 6vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #ffffff;
+  text-shadow: 0 4px 28px rgb(0 0 0 / 35%);
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease 0.08s, transform 0.7s ease 0.08s;
+}
+
+.hero-title-accent {
+  background: linear-gradient(90deg, #6ee7b7, #7dd3fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-subtitle {
+  margin-bottom: 32px;
+  font-size: 1.125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #eafff6;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 30%);
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease 0.18s, transform 0.7s ease 0.18s;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease 0.28s, transform 0.7s ease 0.28s;
+}
+
+.hero-btn {
+  text-transform: none;
+  font-weight: 600;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hero-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 25%);
+}
+
+.hero-badge.is-in,
+.hero-title.is-in,
+.hero-subtitle.is-in,
+.hero-actions.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-hint {
+  margin-top: 40px;
+  color: #ffffff;
+  opacity: 0;
+  animation: bob 2.2s ease-in-out infinite;
+  transition: opacity 0.7s ease 0.4s;
+}
+
+.scroll-hint.is-in {
+  opacity: 0.75;
+}
+
+@keyframes kenBurns {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.08) translate(-1%, -1%); }
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg, .scroll-hint {
+    animation: none !important;
+  }
+}
+</style>

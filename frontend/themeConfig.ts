@@ -3,9 +3,6 @@ import { Skins } from '@core/enums'
 import { breakpointsVuetify } from '@vueuse/core'
 import { VIcon } from 'vuetify/components/VIcon'
 
-// ❗ Logo SVG must be imported with ?raw suffix
-import logo from '@images/logo.svg?raw'
-
 import {
   AppContentLayoutNav,
   ContentWidth,
@@ -15,13 +12,17 @@ import {
 
 export const { themeConfig, layoutConfig } = defineThemeConfig({
   app: {
-    title: 'fakduai',
+    title: 'AI Travel Phayao Plan',
 
-    // ❗ if you have SVG logo and want it to adapt according to theme color, you have to apply color as `color: rgb(var(--v-global-theme-primary))`
     logo: h('div', {
-      innerHTML: logo,
-      style: 'line-height:0; color: rgb(var(--v-global-theme-primary))',
-    }),
+      style: 'width: 34px; height: 34px; border-radius: 50%; overflow: hidden; flex-shrink: 0; line-height: 0;',
+    }, [
+      h('img', {
+        src: '/image-new%20(1).png',
+        alt: 'AI Travel Phayao Plan',
+        style: 'width: 100%; height: 100%; object-fit: cover; object-position: 51% 52%; transform: scale(2.3);',
+      }),
+    ]),
     contentWidth: ContentWidth.Boxed,
     contentLayoutNav: AppContentLayoutNav.Vertical,
     overlayNavFromBreakpoint: breakpointsVuetify.md + 16, // 16 for scrollbar. Docs: https://next.vuetifyjs.com/en/features/display-and-platform/

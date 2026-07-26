@@ -117,14 +117,20 @@ function formatTime(iso: string) {
 
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-4 d-flex align-center gap-2">
-      <VIcon icon="ri-robot-2-line" color="primary" />
-      AI Travel Planner
-    </h1>
-
     <VAlert v-if="chatStore.error" type="error" class="mb-4" :text="chatStore.error" closable @click:close="chatStore.error = null" />
 
-    <VCard class="mb-4" elevation="1">
+    <VCard class="mb-4 chat-card" elevation="1">
+      <div class="chat-banner">
+        <div class="chat-banner-overlay" />
+        <div class="chat-banner-content">
+          <VIcon icon="ri-robot-2-line" size="26" />
+          <div>
+            <div class="chat-banner-title">AI Travel Phayao Plan</div>
+            <div class="chat-banner-subtitle">คุยกับ AI เพื่อวางแผนเที่ยวกว๊านพะเยา</div>
+          </div>
+        </div>
+      </div>
+
       <div ref="chatContainer" class="chat-container pa-4">
         <div
           v-for="msg in chatStore.messages"
@@ -165,13 +171,12 @@ function formatTime(iso: string) {
         <VExpandTransition>
           <VCard
             v-show="showSummary || true"
-            color="surface-variant"
-            variant="tonal"
-            class="mb-3"
+            class="mb-3 summary-card"
+            variant="flat"
           >
             <VCardText class="py-3">
               <div class="d-flex align-center gap-2 mb-2">
-                <VIcon icon="ri-file-list-3-line" color="primary" />
+                <VIcon icon="ri-file-list-3-line" color="#1f9d78" />
                 <span class="font-weight-medium">สรุปแผนเที่ยว</span>
               </div>
               <div class="text-body-2">
@@ -180,9 +185,8 @@ function formatTime(iso: string) {
                 <div>งบประมาณ: {{ summaryInfo.budget }}</div>
               </div>
               <VBtn
-                color="primary"
+                class="mt-3 generate-btn"
                 variant="flat"
-                class="mt-3"
                 prepend-icon="ri-magic-line"
                 :loading="chatStore.isLoading"
                 @click="onGeneratePlan"
@@ -200,7 +204,7 @@ function formatTime(iso: string) {
           <VChip
             v-for="s in latestSuggestions"
             :key="s"
-            color="primary"
+            color="#1f9d78"
             variant="tonal"
             size="small"
             class="cursor-pointer"
@@ -224,7 +228,7 @@ function formatTime(iso: string) {
           @keydown.enter.prevent="sendMessage"
         />
         <VBtn
-          color="primary"
+          class="send-btn"
           icon
           variant="flat"
           :disabled="!inputText.trim() || chatStore.isLoading"
@@ -238,10 +242,61 @@ function formatTime(iso: string) {
 </template>
 
 <style scoped>
+.chat-card {
+  overflow: hidden;
+  background: linear-gradient(180deg, #f2fbf8 0%, #eaf6fb 100%);
+}
+
+.chat-banner {
+  position: relative;
+  height: 110px;
+  background-image: url('/image-proxy.png');
+  background-size: cover;
+  background-position: center 65%;
+}
+
+.chat-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgb(15 64 52 / 78%) 0%, rgb(25 100 110 / 68%) 100%);
+}
+
+.chat-banner-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 20px;
+  color: #ffffff;
+}
+
+.chat-banner-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.chat-banner-subtitle {
+  font-size: 0.8125rem;
+  opacity: 0.9;
+}
+
 .chat-container {
   max-height: 60vh;
   min-height: 300px;
   overflow-y: auto;
+}
+
+.summary-card {
+  background-color: #e3f5ef;
+  color: #0f4034;
+}
+
+.generate-btn,
+.send-btn {
+  background: linear-gradient(135deg, #1f9d78, #35a7c9) !important;
+  color: #ffffff !important;
 }
 
 .chat-bubble {
@@ -251,21 +306,21 @@ function formatTime(iso: string) {
 }
 
 .user-bubble {
-  background-color: rgb(var(--v-theme-primary));
+  background: linear-gradient(135deg, #1f9d78, #35a7c9);
   color: white;
   border-bottom-right-radius: 4px;
 }
 
 .ai-bubble {
-  background-color: rgb(var(--v-theme-surface-variant));
-  color: rgb(var(--v-theme-on-surface-variant));
+  background-color: #e3f5ef;
+  color: #0f4034;
   border-bottom-left-radius: 4px;
 }
 
 .typing-dot {
   width: 6px;
   height: 6px;
-  background-color: rgb(var(--v-theme-on-surface-variant));
+  background-color: #1f9d78;
   border-radius: 50%;
   animation: typingBounce 0.6s infinite alternate;
 }
