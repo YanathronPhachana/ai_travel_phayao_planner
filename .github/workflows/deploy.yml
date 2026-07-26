@@ -54,6 +54,8 @@ jobs:
           npm run build 2>&1
           echo "=== dist ==="
           ls -la dist/ 2>/dev/null || echo "NO_DIST"
+        env:
+          VITE_BACKEND_URL: https://ai-travel-phayao-planner-backend.67020870.workers.dev
       - name: Upload dist
         uses: actions/upload-artifact@v4
         with:
