@@ -244,7 +244,12 @@ function formatTime(iso: string) {
 <style scoped>
 .chat-card {
   overflow: hidden;
-  background: linear-gradient(180deg, #f2fbf8 0%, #eaf6fb 100%);
+  /* Subtle green/blue tint layered over the theme's own surface color
+     (not a fixed light color) so text fields and default card text keep
+     correct contrast in both light and dark mode. */
+  background:
+    linear-gradient(180deg, rgb(31 157 120 / 8%) 0%, rgb(53 167 201 / 8%) 100%),
+    rgb(var(--v-theme-surface));
 }
 
 .chat-banner {
@@ -289,8 +294,8 @@ function formatTime(iso: string) {
 }
 
 .summary-card {
-  background-color: #e3f5ef;
-  color: #0f4034;
+  background: linear-gradient(180deg, rgb(31 157 120 / 12%) 0%, rgb(53 167 201 / 12%) 100%), rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
 }
 
 .generate-btn,
